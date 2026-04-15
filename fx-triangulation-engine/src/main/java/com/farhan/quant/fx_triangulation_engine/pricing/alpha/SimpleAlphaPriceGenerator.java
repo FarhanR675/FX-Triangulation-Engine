@@ -1,6 +1,7 @@
 package com.farhan.quant.fx_triangulation_engine.pricing.alpha;
 
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
+import com.farhan.quant.fx_triangulation_engine.exception.PriceNotAvailableException;
 
 import java.util.HashMap;
 import java.util.Map;
