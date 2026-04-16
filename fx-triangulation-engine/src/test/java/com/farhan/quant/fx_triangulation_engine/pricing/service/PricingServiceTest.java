@@ -23,10 +23,10 @@ class PricingServiceTest {
         PricingService pricingService = new PricingService(alphaPriceGenerator, spreadCalculator, triangulationEngine);
 
         //Act
+        //Price price = pricingService.getPrice(new CurrencyPair("EUR", "JPY"), 0.002);
         Price price = pricingService.getPrice(new CurrencyPair("EUR", "JPY"), 0.002);
 
         //Assert
-
         assertNotNull(price);
 
         /* Expected Results:
