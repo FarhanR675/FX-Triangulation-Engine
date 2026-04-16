@@ -4,10 +4,8 @@ import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
 
 public class TriangulationEngine {
 
-    public double computeCrossRate(CurrencyPair currencyPair1,
-                                   double price1,
-                                   CurrencyPair currencyPair2,
-                                   double price2,
+    public double computeCrossRate(CurrencyPair currencyPair1, double price1,
+                                   CurrencyPair currencyPair2, double price2,
                                    CurrencyPair target
     ) { // normalising currencyPair1 so ut flows into currencyPair2
         if (!currencyPair1.getQuote().equals(currencyPair2.getBase())) {
@@ -16,7 +14,7 @@ public class TriangulationEngine {
                 currencyPair1 = currencyPair1.invert();
                 price1 = 1 / price1;
             } else if (currencyPair1.getQuote().equals(currencyPair2.getQuote())) {
-                currencyPair2 = currencyPair2.invert();
+                currencyPair2 = currencyPair2.invert(); // 5000
                 price2 = 1 / price2;
             } else {
                 throw new RuntimeException("Pairs cannot be aligned");

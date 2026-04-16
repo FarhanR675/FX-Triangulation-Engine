@@ -24,15 +24,21 @@ public class PricingService {
 
         double mid;
 
-        // Changed to hard coding for testing
-        if (currencyPair.toString().equals("EUR/JPY")) {
-            double eurUsd = alphaPriceGenerator.generateMidPrice(new CurrencyPair("EUR", "USD"));
-
-            double usdJpy = alphaPriceGenerator.generateMidPrice(new CurrencyPair("USD", "JPY"));
-
-            mid = triangulationEngine.computeCrossRate(eurUsd, usdJpy);
-        } else {
+        try {
             mid = alphaPriceGenerator.generateMidPrice(currencyPair);
+        } catch (Exception e) {
+
+            // If not available then this will triangulate
+            CurrencyPair currencyPair1 = new CurrencyPair("EUR", "USD");
+            CurrencyPair currencyPair2 = new CurrencyPair("USD", "JPY");
+
+            double price1 = alphaPriceGenerator.generateMidPrice(currencyPair1);
+            double price2 = alphaPriceGenerator.generateMidPrice(currencyPair2);
+
+            mid = triangulationEngine.computeCrossRate(
+                    currencyPair1, price1,
+                    currencyPair2, price2,
+                    currencyPair);
         }
         // Application of spread (bid/ask)
         return spreadCalculator.applySpread(mid, spread);
