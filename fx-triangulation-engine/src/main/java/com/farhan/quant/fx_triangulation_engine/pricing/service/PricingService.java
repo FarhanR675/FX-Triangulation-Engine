@@ -3,8 +3,11 @@ package com.farhan.quant.fx_triangulation_engine.pricing.service;
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
 import com.farhan.quant.fx_triangulation_engine.domain.Price;
 import com.farhan.quant.fx_triangulation_engine.pricing.alpha.AlphaPriceGenerator;
+import com.farhan.quant.fx_triangulation_engine.pricing.alpha.SimpleAlphaPriceGenerator;
 import com.farhan.quant.fx_triangulation_engine.pricing.spread.SpreadCalculator;
 import com.farhan.quant.fx_triangulation_engine.pricing.triangulation.TriangulationEngine;
+
+import java.util.Map;
 
 public class PricingService {
 
@@ -28,17 +31,32 @@ public class PricingService {
             mid = alphaPriceGenerator.generateMidPrice(currencyPair);
         } catch (Exception e) {
 
-            // If not available then this will triangulate
-            CurrencyPair currencyPair1 = new CurrencyPair("EUR", "USD");
-            CurrencyPair currencyPair2 = new CurrencyPair("USD", "JPY");
+            Map<CurrencyPair, Double> availablePrices = ((SimpleAlphaPriceGenerator) alphaPriceGenerator).getAllPrices();
 
-            double price1 = alphaPriceGenerator.generateMidPrice(currencyPair1);
-            double price2 = alphaPriceGenerator.generateMidPrice(currencyPair2);
+            boolean found = false;
+            double result = 0;
 
-            mid = triangulationEngine.computeCrossRate(
-                    currencyPair1, price1,
-                    currencyPair2, price2,
-                    currencyPair);
+            for (Map.Entry<CurrencyPair, Double> entry1 : availablePrices.entrySet()) {
+                for (Map.Entry<CurrencyPair, Double> entry2 : availablePrices.entrySet()) {
+
+                    if (entry1 == entry2) continue;
+
+                    try {
+                        result = triangulationEngine.computeCrossRate(
+                                entry1.getKey(), entry1.getValue(),
+                                entry2.getKey(), entry2.getValue(),
+                                currencyPair);
+                        found = true;
+                        break;
+                    } catch (Exception ignored) {}
+                }
+
+                if (found) break;
+            }
+            if (!found) {
+                throw new RuntimeException("Cannot price " + currencyPair);
+            }
+            mid = result;
         }
         // Application of spread (bid/ask)
         return spreadCalculator.applySpread(mid, spread);
