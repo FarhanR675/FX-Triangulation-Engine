@@ -24,4 +24,8 @@ public class SimpleAlphaPriceGenerator implements AlphaPriceGenerator {
         }
         return price;
     }
+
+    public Map<CurrencyPair, Double> getAllPrices() {
+        return prices;
+    }
 }
