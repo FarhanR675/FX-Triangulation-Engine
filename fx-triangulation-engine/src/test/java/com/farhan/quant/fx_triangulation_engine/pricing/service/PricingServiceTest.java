@@ -11,6 +11,9 @@ import com.farhan.quant.fx_triangulation_engine.pricing.triangulation.Triangulat
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PricingServiceTest {
@@ -31,27 +34,28 @@ class PricingServiceTest {
     void shouldReturnDirectPrice_EurUsd() {
         Price price = pricingService.getPrice(new CurrencyPair("EUR", "USD"));
 
-        assertEquals(1.10, price.getMid(), 0.0001);
-        assertEquals(1.099, price.getBid(), 0.001);
-        assertEquals(1.101, price.getAsk(), 0.001);
+        assertEquals(0, new BigDecimal("1.1000").compareTo(price.getMid()));
+        assertEquals(0, new BigDecimal("1.0995").compareTo(price.getBid()));
+        assertEquals(0, new BigDecimal("1.1005").compareTo(price.getAsk()));
+
+
     }
 
     @Test
     void shouldTriangulate_EurJpy() {
         Price price = pricingService.getPrice(new CurrencyPair("EUR", "JPY"));
 
-        assertEquals(165.0, price.getMid(), 0.0001);
-        assertEquals(164.999, price.getBid(), 0.001);
-        assertEquals(165.001, price.getAsk(), 0.001);
+        assertEquals(0, new BigDecimal("165.0").compareTo(price.getMid()));
+        assertEquals(0, new BigDecimal("164.9985").compareTo(price.getBid()));
+        assertEquals(0, new BigDecimal("165.0015").compareTo(price.getAsk()));
     }
 
     @Test
     void shouldHandleInverse_JpyEur() {
         Price price = pricingService.getPrice(new CurrencyPair("JPY", "EUR"));
 
-        double expectedMid = 1.0 / 165.0;
-
-        assertEquals(expectedMid, price.getMid(), 0.0001);
+        BigDecimal expectedMid = BigDecimal.ONE.divide(new BigDecimal("165.0"), 6, RoundingMode.HALF_UP);
+        assertEquals(0, expectedMid.compareTo(price.getMid()));
     }
 
     @Test
@@ -67,14 +71,8 @@ class PricingServiceTest {
         //Assert
         assertNotNull(price);
 
-        /* Expected Results:
-        *  EUR/USD = 1.10
-        *  USD/JPY = 150
-        *  EUR/JPY = 165  */
-        assertEquals(165.0, price.getMid(), 0.0001);
-
-        // Spread = 0.002 = Half = 0.001
-        assertEquals(164.999, price.getBid(), 0.0001);
-        assertEquals(165.001, price.getAsk(), 0.0001);
+        assertEquals(0, new BigDecimal("165.0").compareTo(price.getMid()));
+        assertEquals(0, new BigDecimal("164.9985").compareTo(price.getBid()));
+        assertEquals(0, new BigDecimal("165.0015").compareTo(price.getAsk()));
     }
 }
