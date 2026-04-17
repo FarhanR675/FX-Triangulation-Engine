@@ -1,7 +1,9 @@
 package com.farhan.quant.fx_triangulation_engine.pricing.triangulation;
 
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
+import org.springframework.stereotype.Component;
 
+@Component
 public class TriangulationEngine {
 
     public double computeCrossRate(CurrencyPair currencyPair1, double price1,

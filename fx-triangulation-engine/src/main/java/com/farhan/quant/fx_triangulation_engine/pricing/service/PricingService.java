@@ -7,9 +7,11 @@ import com.farhan.quant.fx_triangulation_engine.pricing.alpha.AlphaPriceGenerato
 import com.farhan.quant.fx_triangulation_engine.pricing.alpha.SimpleAlphaPriceGenerator;
 import com.farhan.quant.fx_triangulation_engine.pricing.spread.SpreadCalculator;
 import com.farhan.quant.fx_triangulation_engine.pricing.triangulation.TriangulationEngine;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+@Service
 public class PricingService {
 
     private final AlphaPriceGenerator alphaPriceGenerator;

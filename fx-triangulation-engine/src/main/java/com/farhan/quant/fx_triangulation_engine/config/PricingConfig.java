@@ -1,10 +1,12 @@
 package com.farhan.quant.fx_triangulation_engine.config;
 
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class PricingConfig {
 
     private final Map<CurrencyPair, Double> spreads = new HashMap<>();
