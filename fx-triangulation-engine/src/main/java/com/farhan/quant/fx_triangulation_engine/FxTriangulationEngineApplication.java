@@ -12,11 +12,5 @@ public class FxTriangulationEngineApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(FxTriangulationEngineApplication.class, args);
 
-        AlphaPriceGenerator generator = new SimpleAlphaPriceGenerator();
-
-        double price = generator.generateMidPrice(new CurrencyPair("EUR", "USD"));
-
-        System.out.println(price);
 	}
-
 }
