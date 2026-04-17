@@ -14,4 +14,8 @@ public class PricingConfig {
         spreads.put(new CurrencyPair("USD", "JPY"), 0.002);
         spreads.put(new CurrencyPair("EUR", "JPY"), 0.003);
     }
+
+    public double getSpread(CurrencyPair currencyPair) {
+        return spreads.getOrDefault(currencyPair, 0.005); // default spread
+    }
 }
