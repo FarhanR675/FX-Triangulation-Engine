@@ -20,9 +20,9 @@ class SpreadCalculatorTest {
         Price price = spreadCalculator.applySpread(mid, spread);
 
         //Assert
-        assertEquals(new BigDecimal("1.1000"), price.getMid());
-        assertEquals(new BigDecimal("1.0999"), price.getBid());
-        assertEquals(new BigDecimal("1.1001"), price.getAsk());
+        assertEquals(0, new BigDecimal("1.1000").compareTo(price.getMid()));
+        assertEquals(0, new BigDecimal("1.0999").compareTo(price.getBid()));
+        assertEquals(0, new BigDecimal("1.1001").compareTo(price.getAsk()));
 
         System.out.println("Mid: " + price.getMid());
         System.out.println("Bid: " + price.getBid());
