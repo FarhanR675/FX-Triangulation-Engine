@@ -1,5 +1,6 @@
 package com.farhan.quant.fx_triangulation_engine.pricing.service;
 
+import com.farhan.quant.fx_triangulation_engine.config.PricingConfig;
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
 import com.farhan.quant.fx_triangulation_engine.domain.Price;
 import com.farhan.quant.fx_triangulation_engine.pricing.alpha.AlphaPriceGenerator;
@@ -14,18 +15,23 @@ public class PricingService {
     private final AlphaPriceGenerator alphaPriceGenerator;
     private final SpreadCalculator spreadCalculator;
     private final TriangulationEngine triangulationEngine;
+    private final PricingConfig pricingConfig;
 
     public PricingService(AlphaPriceGenerator alphaPriceGenerator,
                           SpreadCalculator spreadCalculator,
-                          TriangulationEngine triangulationEngine) {
+                          TriangulationEngine triangulationEngine,
+                          PricingConfig pricingConfig) {
         this.alphaPriceGenerator = alphaPriceGenerator;
         this.spreadCalculator = spreadCalculator;
         this.triangulationEngine = triangulationEngine;
+        this.pricingConfig = pricingConfig;
     }
 
-    public Price getPrice(CurrencyPair currencyPair, double spread) {
+    public Price getPrice(CurrencyPair currencyPair) {
 
         double mid;
+
+        double spread = pricingConfig.getSpread(currencyPair);
 
         try {
             mid = alphaPriceGenerator.generateMidPrice(currencyPair);
