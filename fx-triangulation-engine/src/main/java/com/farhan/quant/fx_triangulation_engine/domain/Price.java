@@ -1,24 +1,26 @@
 package com.farhan.quant.fx_triangulation_engine.domain;
 
+import java.math.BigDecimal;
+
 public class Price {
 
-    private final double mid;
-    private final double bid;
-    private final double ask;
+    private final BigDecimal mid;
+    private final BigDecimal bid;
+    private final BigDecimal ask;
 
-    public Price(double mid, double bid, double ask) {
+    public Price(BigDecimal mid, BigDecimal bid, BigDecimal ask) {
         this.mid = mid;
         this.bid = bid;
         this.ask = ask;
     }
 
-    public double getMid() {
+    public BigDecimal getMid() {
         return mid;
     }
-    public double getBid() {
+    public BigDecimal getBid() {
         return bid;
     }
-    public double getAsk() {
+    public BigDecimal getAsk() {
         return ask;
     }
 
