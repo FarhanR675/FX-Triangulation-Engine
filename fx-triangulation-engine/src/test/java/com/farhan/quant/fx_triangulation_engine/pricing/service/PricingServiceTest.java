@@ -25,14 +25,13 @@ class PricingServiceTest {
         AlphaPriceGenerator alphaPriceGenerator = new SimpleAlphaPriceGenerator();
         SpreadCalculator spreadCalculator = new FixedSpreadCalculator();
         TriangulationEngine triangulationEngine = new TriangulationEngine();
-        PricingConfig pricingConfig = new PricingConfig();
-
-        pricingService = new PricingService(alphaPriceGenerator, spreadCalculator, triangulationEngine, pricingConfig);
+        ClientConfigService clientConfigService = new ClientConfigService();
+        pricingService = new PricingService(alphaPriceGenerator, spreadCalculator, triangulationEngine, clientConfigService);
     }
 
     @Test
     void shouldReturnDirectPrice_EurUsd() {
-        Price price = pricingService.getPrice(new CurrencyPair("EUR", "USD"));
+        Price price = pricingService.getPrice("CLIENT_A", new CurrencyPair("EUR", "USD"));
 
         assertEquals(0, new BigDecimal("1.1000").compareTo(price.getMid()));
         assertEquals(0, new BigDecimal("1.0995").compareTo(price.getBid()));
@@ -43,7 +42,7 @@ class PricingServiceTest {
 
     @Test
     void shouldTriangulate_EurJpy() {
-        Price price = pricingService.getPrice(new CurrencyPair("EUR", "JPY"));
+        Price price = pricingService.getPrice("CLIENT_A", new CurrencyPair("EUR", "JPY"));
 
         assertEquals(0, new BigDecimal("165.0").compareTo(price.getMid()));
         assertEquals(0, new BigDecimal("164.9985").compareTo(price.getBid()));
@@ -52,7 +51,7 @@ class PricingServiceTest {
 
     @Test
     void shouldHandleInverse_JpyEur() {
-        Price price = pricingService.getPrice(new CurrencyPair("JPY", "EUR"));
+        Price price = pricingService.getPrice("CLIENT_A", new CurrencyPair("JPY", "EUR"));
 
         BigDecimal expectedMid = BigDecimal.ONE.divide(new BigDecimal("165.0"), 6, RoundingMode.HALF_UP);
         assertEquals(0, expectedMid.compareTo(price.getMid()));
@@ -60,13 +59,13 @@ class PricingServiceTest {
 
     @Test
     void shouldThrow_WhenNoPathExists() {
-        assertThrows(RuntimeException.class, () -> pricingService.getPrice(new CurrencyPair("GBP", "USD")));
+        assertThrows(RuntimeException.class, () -> pricingService.getPrice("CLIENT_A", new CurrencyPair("GBP", "USD")));
     }
 
     @Test
     void shouldGeneratePriceForEurJpyUsingTriangulation() {
         // Arrange & Act
-        Price price = pricingService.getPrice(new CurrencyPair("EUR", "JPY"));
+        Price price = pricingService.getPrice("CLIENT_A", new CurrencyPair("EUR", "JPY"));
 
         //Assert
         assertNotNull(price);
