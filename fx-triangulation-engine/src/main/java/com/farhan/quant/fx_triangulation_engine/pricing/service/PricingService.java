@@ -1,7 +1,6 @@
 package com.farhan.quant.fx_triangulation_engine.pricing.service;
 
 import com.farhan.quant.fx_triangulation_engine.config.ClientConfig;
-import com.farhan.quant.fx_triangulation_engine.config.PricingConfig;
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
 import com.farhan.quant.fx_triangulation_engine.domain.Price;
 import com.farhan.quant.fx_triangulation_engine.pricing.alpha.AlphaPriceGenerator;
@@ -10,6 +9,7 @@ import com.farhan.quant.fx_triangulation_engine.pricing.spread.SpreadCalculator;
 import com.farhan.quant.fx_triangulation_engine.pricing.triangulation.TriangulationEngine;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -19,6 +19,7 @@ public class PricingService {
     private final SpreadCalculator spreadCalculator;
     private final TriangulationEngine triangulationEngine;
     private final ClientConfigService clientConfigService;
+    private final Map<String, Price> cache = new HashMap<>();
 
     public PricingService(AlphaPriceGenerator alphaPriceGenerator,
                           SpreadCalculator spreadCalculator,
@@ -31,6 +32,12 @@ public class PricingService {
     }
 
     public Price getPrice(String clientId, CurrencyPair currencyPair) {
+
+        String cacheKey = clientId + "|" + currencyPair.toString();
+
+        if (cache.containsKey(cacheKey)) {
+            return cache.get(cacheKey);
+        }
 
         ClientConfig client = clientConfigService.getClient(clientId);
         double spread = client.getSpread(currencyPair);
@@ -68,7 +75,10 @@ public class PricingService {
             }
             mid = result;
         }
-        // Application of spread (bid/ask)
-        return spreadCalculator.applySpread(mid, spread);
+        Price price = spreadCalculator.applySpread(mid, spread);
+
+        cache.put(cacheKey, price);
+
+        return price;
     }
 }
