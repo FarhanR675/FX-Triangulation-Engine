@@ -107,13 +107,13 @@ public class TriangulationEngine {
 
         for (int i = 0; i < n - 1; i++) {
             for (Edge edge : edges) {
-                if (dist.get(edge.from) + edge.weight < dist.get(edge.to)) {
+                if (dist.get(edge.from) != Double.MAX_VALUE && dist.get(edge.from)  + edge.weight < dist.get(edge.to)) {
                     dist.put(edge.to, dist.get(edge.from) + edge.weight);
                 }
             }
         }
         for (Edge edge : edges) {
-            if (dist.get(edge.from) + edge.weight < dist.get(edge.to)) {
+            if (dist.get(edge.from) != Double.MAX_VALUE && dist.get(edge.from) + edge.weight < dist.get(edge.to)) {
                 return true; // Means arbitrage found
             }
         }
