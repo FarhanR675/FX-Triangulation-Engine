@@ -13,6 +13,7 @@ public class ClientConfigService {
     public ClientConfigService() {
         ClientConfig clientA = new ClientConfig("CLIENT_A", 0.002);
         clientA.addPairSpread(new CurrencyPair("EUR", "USD"), 0.001);
+        clientA.addPairSpread(new CurrencyPair("EUR", "JPY"), 0.003);
 
         ClientConfig clientB = new ClientConfig("CLIENT_B", 0.005);
 
