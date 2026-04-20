@@ -3,8 +3,30 @@ package com.farhan.quant.fx_triangulation_engine.pricing.triangulation;
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
 public class TriangulationEngine {
+
+    private Map<String, Map<String, Double>> buildGraph(Map<CurrencyPair, Double> prices) {
+        Map<String, Map<String, Double>> graph = new HashMap<>();
+
+        for (Map.Entry<CurrencyPair, Double> entry : prices.entrySet()) {
+            String base = entry.getKey().getBase();
+            String quote = entry.getKey().getQuote();
+            double rate = entry.getValue();
+
+            // Forward edge
+            graph.computeIfAbsent(base, k -> new HashMap<>()).put(quote, rate);
+
+            // Reverse edge
+            graph.computeIfAbsent(quote, k -> new HashMap<>()).put(base, 1 / rate);
+        }
+        return graph;
+    }
+
+
 
     public double computeCrossRate(CurrencyPair currencyPair1, double price1,
                                    CurrencyPair currencyPair2, double price2,
