@@ -19,4 +19,12 @@ public class ClientConfigService {
         clients.put("CLIENT_A", clientA);
         clients.put("CLIENT_B", clientB);
     }
+
+    public ClientConfig getClient(String clientId) {
+        ClientConfig config = clients.get(clientId);
+        if (config == null) {
+            throw new RuntimeException("Unknown Client: " + clientId);
+        }
+        return config;
+    }
 }
