@@ -16,9 +16,9 @@ public class PricingController {
         this.pricingService = pricingService;
     }
     @GetMapping("/price")
-    public Price getPrice(@RequestParam String base,
+    public Price getPrice(@RequestParam String client,
+                          @RequestParam String base,
                           @RequestParam String quote) {
-        CurrencyPair currencyPair = new CurrencyPair(base, quote);
-        return pricingService.getPrice(currencyPair);
+        return pricingService.getPrice(client, new CurrencyPair(base, quote));
     }
 }
