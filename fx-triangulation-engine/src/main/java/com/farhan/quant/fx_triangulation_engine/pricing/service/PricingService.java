@@ -35,8 +35,9 @@ public class PricingService {
 
         String cacheKey = clientId + "|" + currencyPair.toString();
 
-        if (cache.containsKey(cacheKey)) {
-            return cache.get(cacheKey);
+        Price cached = cache.get(cacheKey);
+        if (cached != null) {
+            return cached;
         }
 
         ClientConfig client = clientConfigService.getClient(clientId);
@@ -50,32 +51,9 @@ public class PricingService {
 
             Map<CurrencyPair, Double> availablePrices = ((SimpleAlphaPriceGenerator) alphaPriceGenerator).getAllPrices();
 
-            boolean found = false;
-            double result = 0;
-
-            for (Map.Entry<CurrencyPair, Double> entry1 : availablePrices.entrySet()) {
-                for (Map.Entry<CurrencyPair, Double> entry2 : availablePrices.entrySet()) {
-
-                    if (entry1 == entry2) continue;
-
-                    try {
-                        result = triangulationEngine.computeCrossRate(
-                                entry1.getKey(), entry1.getValue(),
-                                entry2.getKey(), entry2.getValue(),
-                                currencyPair);
-                        found = true;
-                        break;
-                    } catch (Exception ignored) {}
-                }
-
-                if (found) break;
-            }
-            if (!found) {
-                throw new RuntimeException("Cannot price " + currencyPair);
-            }
-            mid = result;
+            mid = triangulationEngine.computeCrossRate(availablePrices, currencyPair);
         }
-        Price price = spreadCalculator.applySpread(mid, spread);
+        Price price = spreadCalculator.applySpread(mid,spread);
 
         cache.put(cacheKey, price);
 
