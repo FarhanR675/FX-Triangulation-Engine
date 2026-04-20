@@ -1,6 +1,5 @@
 package com.farhan.quant.fx_triangulation_engine.pricing.service;
 
-import com.farhan.quant.fx_triangulation_engine.config.PricingConfig;
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
 import com.farhan.quant.fx_triangulation_engine.domain.Price;
 import com.farhan.quant.fx_triangulation_engine.pricing.alpha.AlphaPriceGenerator;
