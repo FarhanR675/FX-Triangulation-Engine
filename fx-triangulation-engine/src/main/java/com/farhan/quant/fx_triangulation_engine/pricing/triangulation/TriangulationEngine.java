@@ -37,9 +37,7 @@ public class TriangulationEngine {
         }
         visited.add(current);
 
-        Map<String, Double> neighbours = graph.getOrDefault(current, Collections.emptyMap());
-
-        for (Map.Entry<String, Double> entry : neighbours.entrySet()) {
+        for (Map.Entry<String, Double> entry : graph.getOrDefault(current, Collections.emptyMap()).entrySet()) {
             String next = entry.getKey();
             double rate = entry.getValue();
 
@@ -49,7 +47,7 @@ public class TriangulationEngine {
                         target,
                         graph,
                         visited,
-                        accumulatedRate = rate
+                        accumulatedRate * rate
                 );
                 if (result != null) {
                     return result;
@@ -76,5 +74,61 @@ public class TriangulationEngine {
             throw new RuntimeException("No path found for: " + target);
         }
         return result;
+    }
+
+    public boolean detectArbitrage(Map<CurrencyPair, Double> prices) {
+
+        Map<String, Map<String, Double>> graph = buildGraph(prices);
+
+        List<Edge> edges = new ArrayList<>();
+
+        for (String from : graph.keySet()) {
+            for (Map.Entry<String, Double> entry : graph.get(from).entrySet()) {
+
+                String to = entry.getKey();
+                double rate = entry.getValue();
+
+                double weight = -Math.log(rate);
+
+                edges.add(new Edge(from, to, weight));
+            }
+        }
+        Set<String> currencies = graph.keySet();
+
+        Map<String, Double> dist = new HashMap<>();
+        for (String c : currencies) {
+            dist.put(c, Double.MAX_VALUE);
+        }
+
+        String start = currencies.iterator().next();
+        dist.put(start, 0.0);
+
+        int n = currencies.size();
+
+        for (int i = 0; i < n - 1; i++) {
+            for (Edge edge : edges) {
+                if (dist.get(edge.from) + edge.weight < dist.get(edge.to)) {
+                    dist.put(edge.to, dist.get(edge.from) + edge.weight);
+                }
+            }
+        }
+        for (Edge edge : edges) {
+            if (dist.get(edge.from) + edge.weight < dist.get(edge.to)) {
+                return true; // Means arbitrage found
+            }
+        }
+        return false;
+    }
+
+    private static class Edge {
+        String from;
+        String to;
+        double weight;
+
+        Edge(String from, String to, double weight) {
+            this.from = from;
+            this.to = to;
+            this.weight = weight;
+        }
     }
 }
