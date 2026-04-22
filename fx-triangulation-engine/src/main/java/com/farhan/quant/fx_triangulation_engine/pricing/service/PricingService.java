@@ -21,7 +21,7 @@ public class PricingService {
     private final SpreadCalculator spreadCalculator;
     private final TriangulationEngine triangulationEngine;
     private final ClientConfigService clientConfigService;
-    private final Map<String, Price> cache = new HashMap<>();
+//    private final Map<String, Price> cache = new HashMap<>();
     private boolean arbitrageChecked = false;
 
     public PricingService(AlphaPriceGenerator alphaPriceGenerator,
@@ -36,12 +36,11 @@ public class PricingService {
 
     public Price getPrice(String clientId, CurrencyPair currencyPair) {
 
-        String cacheKey = clientId + "|" + currencyPair.getBase() + "|" + currencyPair.getQuote();
-
-        Price cached = cache.get(cacheKey);
-        if (cached != null) {
-            return cached;
-        }
+//        String cacheKey = clientId + "|" + currencyPair.getBase() + "|" + currencyPair.getQuote();
+//        Price cached = cache.get(cacheKey);
+//        if (cached != null) {
+//            return cached;
+//        }
 
         ClientConfig client = clientConfigService.getClient(clientId);
         double spread = client.getSpread(currencyPair);
@@ -66,7 +65,7 @@ public class PricingService {
         }
         Price price = spreadCalculator.applySpread(mid,spread);
 
-        cache.put(cacheKey, price);
+        //cache.put(cacheKey, price);
 
         return price;
     }
