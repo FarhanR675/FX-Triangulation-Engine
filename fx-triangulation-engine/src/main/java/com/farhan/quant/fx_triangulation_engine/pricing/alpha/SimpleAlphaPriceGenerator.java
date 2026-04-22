@@ -6,11 +6,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 @Component
 public class SimpleAlphaPriceGenerator implements AlphaPriceGenerator {
 
     private final Map<CurrencyPair, Double> prices = new HashMap<>();
+    private final Random random = new Random();
 
     public SimpleAlphaPriceGenerator() {
         prices.put(new CurrencyPair("EUR", "USD"), 1.10);
@@ -19,12 +21,17 @@ public class SimpleAlphaPriceGenerator implements AlphaPriceGenerator {
 
     @Override
     public double generateMidPrice(CurrencyPair currencyPair) {
-        Double price = prices.get(currencyPair);
+        Double currentPrice = prices.get(currencyPair);
 
-        if (price == null) {
+        if (currentPrice == null) {
             throw new PriceNotAvailableException("No price available for " + currencyPair);
         }
-        return price;
+        double change = currentPrice * (random.nextDouble() - 0.5) * 0.001;
+        double newPrice = currentPrice + change;
+
+        prices.put(currencyPair, newPrice);
+
+        return newPrice;
     }
 
     public Map<CurrencyPair, Double> getAllPrices() {
