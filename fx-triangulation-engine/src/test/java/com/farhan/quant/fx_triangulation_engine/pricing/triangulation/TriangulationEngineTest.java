@@ -3,6 +3,9 @@ package com.farhan.quant.fx_triangulation_engine.pricing.triangulation;
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class TriangulationEngineTest {
@@ -17,10 +20,10 @@ class TriangulationEngineTest {
         CurrencyPair eurJpy = new CurrencyPair("EUR", "JPY");
 
         // Act
-        double result = triangulationEngine.computeCrossRate(
-                eurUsd, 1.10,
-                usdJpy, 1.50,
-                eurJpy);
+        Map<CurrencyPair, Double> prices = new HashMap<>();
+        prices.put(eurUsd, 1.10);
+        prices.put(usdJpy, 150.0);
+        double result = triangulationEngine.computeCrossRate(prices, eurJpy);
 
         // Assert
         assertEquals(165.0, result, 0.0001);
