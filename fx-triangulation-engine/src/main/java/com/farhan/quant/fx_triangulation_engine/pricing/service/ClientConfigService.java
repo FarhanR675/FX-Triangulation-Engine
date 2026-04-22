@@ -2,10 +2,12 @@ package com.farhan.quant.fx_triangulation_engine.pricing.service;
 
 import com.farhan.quant.fx_triangulation_engine.config.ClientConfig;
 import com.farhan.quant.fx_triangulation_engine.domain.CurrencyPair;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Service
 public class ClientConfigService {
 
     private final Map<String, ClientConfig>  clients = new HashMap<>();
