@@ -10,7 +10,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -21,8 +20,6 @@ public class PricingService {
     private final SpreadCalculator spreadCalculator;
     private final TriangulationEngine triangulationEngine;
     private final ClientConfigService clientConfigService;
-//    private final Map<String, Price> cache = new HashMap<>();
-    private boolean arbitrageChecked = false;
 
     public PricingService(AlphaPriceGenerator alphaPriceGenerator,
                           SpreadCalculator spreadCalculator,
@@ -36,37 +33,23 @@ public class PricingService {
 
     public Price getPrice(String clientId, CurrencyPair currencyPair) {
 
-//        String cacheKey = clientId + "|" + currencyPair.getBase() + "|" + currencyPair.getQuote();
-//        Price cached = cache.get(cacheKey);
-//        if (cached != null) {
-//            return cached;
-//        }
-
         ClientConfig client = clientConfigService.getClient(clientId);
         double spread = client.getSpread(currencyPair);
+
+        Map<CurrencyPair, Double> availablePrices = alphaPriceGenerator.getAllPrices();
+        boolean isArbitrage = triangulationEngine.detectArbitrage(availablePrices);
+
+        if (isArbitrage) {
+            log.warn("Arbitrage opportunity detected for {} for client {}", currencyPair, clientId);
+        }
 
         double mid;
 
         try {
             mid = alphaPriceGenerator.generateMidPrice(currencyPair);
         } catch (Exception e) {
-
-            Map<CurrencyPair, Double> availablePrices = alphaPriceGenerator.getAllPrices();
-
-            if (!arbitrageChecked) {
-                boolean hasArbitrage = triangulationEngine.detectArbitrage(availablePrices);
-
-                if (hasArbitrage) {
-                    log.warn("Arbitrage opportunity detected in market data for client {}", clientId);
-                }
-                arbitrageChecked = true;
-            }
             mid = triangulationEngine.computeCrossRate(availablePrices, currencyPair);
         }
-        Price price = spreadCalculator.applySpread(mid,spread);
-
-        //cache.put(cacheKey, price);
-
-        return price;
+        return spreadCalculator.applySpread(mid, spread, isArbitrage);
     }
 }
