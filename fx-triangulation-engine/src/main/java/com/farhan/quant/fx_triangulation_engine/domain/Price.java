@@ -7,11 +7,13 @@ public class Price {
     private final BigDecimal mid;
     private final BigDecimal bid;
     private final BigDecimal ask;
+    private final boolean arbitrage;
 
-    public Price(BigDecimal mid, BigDecimal bid, BigDecimal ask) {
+    public Price(BigDecimal mid, BigDecimal bid, BigDecimal ask, boolean arbitrage) {
         this.mid = mid;
         this.bid = bid;
         this.ask = ask;
+        this.arbitrage = arbitrage;
     }
 
     public BigDecimal getMid() {
@@ -23,6 +25,9 @@ public class Price {
     public BigDecimal getAsk() {
         return ask;
     }
+    public boolean isArbitrage() {
+        return arbitrage;
+    }
 
     @Override
     public String toString() {
@@ -30,6 +35,7 @@ public class Price {
                 "mid=" + mid +
                 ", bid=" + bid +
                 ", ask=" + ask +
+                ", arbitrage=" + arbitrage +
                 '}';
     }
 }
