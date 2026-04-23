@@ -3,15 +3,14 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
 function PriceBoard() {
-  const [prices, setPrices] = useState({
-    EURUSD: {},
-    EURJPY: {},
-  });
+  const pairs = ["EURUSD", "EURJPY", "USDJPY"];
+
+  const [prices, setPrices] = useState(
+    Object.fromEntries(pairs.map((p) => [p, {}])),
+  );
 
   // Store previous prices to detect movement
   const prevPrices = useRef({});
-
-  const pairs = ["EURUSD", "EURJPY"];
 
   useEffect(() => {
     const socket = new SockJS("http://localhost:8080/ws-prices");
@@ -109,7 +108,15 @@ function PriceBoard() {
                 {format(prices[pair]?.ask)}
               </td>
 
-              <td style={tdStyle}>LIVE</td>
+              <td
+                style={{
+                  ...tdStyle,
+                  color: prices[pair]?.arbitrage ? "#f97316" : "#22c55e",
+                  fontWeight: "600",
+                }}
+              >
+                {prices[pair]?.arbitrage ? "🔥 Arbitrage" : "Normal"}
+              </td>
             </tr>
           ))}
         </tbody>
