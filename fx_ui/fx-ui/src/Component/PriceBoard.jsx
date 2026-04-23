@@ -1,6 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 function PriceBoard() {
   const pairs = ["EURUSD", "EURJPY", "USDJPY"];
@@ -9,7 +17,8 @@ function PriceBoard() {
     Object.fromEntries(pairs.map((p) => [p, {}])),
   );
 
-  // Store previous prices to detect movement
+  const [history, setHistory] = useState({});
+
   const prevPrices = useRef({});
 
   useEffect(() => {
@@ -23,8 +32,24 @@ function PriceBoard() {
           client.subscribe(`/topic/prices/${pair}`, (msg) => {
             const data = JSON.parse(msg.body);
 
+            // ✅ update history FIRST (clean)
+            setHistory((h) => {
+              const prevArr = h[pair] || [];
+
+              const newEntry = {
+                time: new Date().toLocaleTimeString(),
+                mid: data.mid,
+              };
+
+              return {
+                ...h,
+                [pair]: [...prevArr, newEntry].slice(-20),
+              };
+            });
+
+            // ✅ update prices
             setPrices((prev) => {
-              prevPrices.current[pair] = prev[pair]; // store previous
+              prevPrices.current[pair] = prev[pair];
               return { ...prev, [pair]: data };
             });
           });
@@ -38,7 +63,6 @@ function PriceBoard() {
 
   const format = (n) => (n ? Number(n).toFixed(5) : "-");
 
-  // Determine price movement
   const getColor = (pair, field) => {
     const prev = prevPrices.current[pair]?.[field];
     const curr = prices[pair]?.[field];
@@ -121,6 +145,30 @@ function PriceBoard() {
           ))}
         </tbody>
       </table>
+
+      <h2 style={{ marginTop: "40px" }}>Price Charts</h2>
+
+      {pairs.map((pair) => (
+        <div key={pair} style={{ marginBottom: "40px" }}>
+          <h3>{pair.slice(0, 3) + "/" + pair.slice(3)}</h3>
+
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={history[pair] || []}>
+              <XAxis dataKey="time" hide />
+              <YAxis domain={["auto", "auto"]} />
+              <Tooltip />
+
+              <Line
+                type="monotone"
+                dataKey="mid"
+                stroke={getColor(pair, "mid")}
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ))}
     </div>
   );
 }
