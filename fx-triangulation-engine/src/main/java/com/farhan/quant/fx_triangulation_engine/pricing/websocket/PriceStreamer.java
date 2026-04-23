@@ -5,11 +5,19 @@ import com.farhan.quant.fx_triangulation_engine.pricing.service.PricingService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class PriceStreamer {
 
     private final PricingService pricingService;
     private final PricePublisher pricePublisher;
+
+    private final List<CurrencyPair> pairs = List.of(
+            new CurrencyPair("EUR", "USD"),
+            new CurrencyPair("EUR", "JPY"),
+            new CurrencyPair("USD", "JPY")
+    );
 
     public PriceStreamer(PricingService pricingService,
                          PricePublisher pricePublisher) {
@@ -20,18 +28,12 @@ public class PriceStreamer {
     @Scheduled(fixedRate = 1000)
     public void streamPrices() {
 
-        var eurUsd = pricingService.getPrice(
-                "CLIENT_A",
-                new CurrencyPair("EUR", "USD")
-        );
+        for (CurrencyPair pair : pairs) {
+            var price = pricingService.getPrice("CLIENT_A", pair);
 
-        var eurJpy = pricingService.getPrice(
-                "CLIENT_A",
-                new CurrencyPair("EUR", "JPY")
-        );
+            String pairCode = pair.getBase() + pair.getQuote();
 
-        pricePublisher.publish("EURUSD", eurUsd);
-        pricePublisher.publish("EURJPY", eurJpy);
+            pricePublisher.publish(pairCode, price);
+        }
     }
-
 }
