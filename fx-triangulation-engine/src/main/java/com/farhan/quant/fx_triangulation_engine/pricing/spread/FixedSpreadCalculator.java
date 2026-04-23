@@ -10,7 +10,7 @@ import java.math.RoundingMode;
 public class FixedSpreadCalculator implements SpreadCalculator {
 
     @Override
-    public Price applySpread(double mid, double spread) {
+    public Price applySpread(double mid, double spread, boolean arbitrage) {
 
         BigDecimal midBd = BigDecimal.valueOf(mid);
         BigDecimal spreadBd = BigDecimal.valueOf(spread);
@@ -24,6 +24,7 @@ public class FixedSpreadCalculator implements SpreadCalculator {
         return new Price(
                 midBd.setScale(6, RoundingMode.HALF_UP),
                 bid.setScale(6, RoundingMode.HALF_UP),
-                ask.setScale(6, RoundingMode.HALF_UP));
+                ask.setScale(6, RoundingMode.HALF_UP),
+                arbitrage);
     }
 }
