@@ -4,5 +4,5 @@ import com.farhan.quant.fx_triangulation_engine.domain.Price;
 
 public interface SpreadCalculator {
 
-    Price applySpread(double midPrice, double spread);
+    Price applySpread(double midPrice, double spread, boolean arbitrage);
 }
