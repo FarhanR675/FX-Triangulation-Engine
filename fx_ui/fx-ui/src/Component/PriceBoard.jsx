@@ -18,9 +18,22 @@ function PriceBoard() {
   );
 
   const [history, setHistory] = useState({});
+  const [selectedPair, setSelectedPair] = useState(pairs[0]);
+  const [now, setNow] = useState(Date.now());
 
   const prevPrices = useRef({});
+  const flashState = useRef({}); // ✅ NEW (stores flash color)
 
+  // ⏱ Tick for latency
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 📡 WebSocket
   useEffect(() => {
     const socket = new SockJS("http://localhost:8080/ws-prices");
 
@@ -31,26 +44,50 @@ function PriceBoard() {
         pairs.forEach((pair) => {
           client.subscribe(`/topic/prices/${pair}`, (msg) => {
             const data = JSON.parse(msg.body);
+            const nowTime = new Date();
 
-            // ✅ update history FIRST (clean)
+            // 📈 Chart history
             setHistory((h) => {
               const prevArr = h[pair] || [];
 
-              const newEntry = {
-                time: new Date().toLocaleTimeString(),
-                mid: data.mid,
-              };
-
               return {
                 ...h,
-                [pair]: [...prevArr, newEntry].slice(-20),
+                [pair]: [
+                  ...prevArr,
+                  {
+                    time: nowTime.toLocaleTimeString(),
+                    mid: data.mid,
+                  },
+                ].slice(-30),
               };
             });
 
-            // ✅ update prices
+            // 💥 Detect movement → trigger flash
+            const prevMid = prevPrices.current[pair]?.mid;
+            if (prevMid && data.mid) {
+              if (data.mid > prevMid) {
+                flashState.current[pair] = "green";
+              } else if (data.mid < prevMid) {
+                flashState.current[pair] = "red";
+              }
+
+              // remove flash after 300ms
+              setTimeout(() => {
+                flashState.current[pair] = null;
+              }, 300);
+            }
+
+            // 💰 Update prices
             setPrices((prev) => {
               prevPrices.current[pair] = prev[pair];
-              return { ...prev, [pair]: data };
+
+              return {
+                ...prev,
+                [pair]: {
+                  ...data,
+                  timestamp: nowTime,
+                },
+              };
             });
           });
         });
@@ -67,108 +104,158 @@ function PriceBoard() {
     const prev = prevPrices.current[pair]?.[field];
     const curr = prices[pair]?.[field];
 
-    if (!prev || !curr) return "white";
-    if (curr > prev) return "#16a34a"; // green
-    if (curr < prev) return "#dc2626"; // red
-    return "white";
+    if (!prev || !curr) return "#94a3b8";
+    if (curr > prev) return "#22c55e";
+    if (curr < prev) return "#ef4444";
+    return "#94a3b8";
   };
 
-  const thStyle = {
-    padding: "12px",
-    textAlign: "left",
-    fontWeight: "600",
+  const getLatency = (pair) => {
+    const ts = prices[pair]?.timestamp;
+    if (!ts) return "-";
+
+    const diff = (now - ts.getTime()) / 1000;
+    return diff.toFixed(1) + "s";
   };
 
-  const tdStyle = {
-    padding: "12px",
-    borderTop: "1px solid #334155",
+  // ✅ FLASH STYLE
+  const getFlashStyle = (pair) => {
+    const flash = flashState.current[pair];
+
+    if (flash === "green") {
+      return { backgroundColor: "rgba(34,197,94,0.3)", transition: "0.3s" };
+    }
+    if (flash === "red") {
+      return { backgroundColor: "rgba(239,68,68,0.3)", transition: "0.3s" };
+    }
+    return {};
   };
 
   return (
     <div
       style={{
-        padding: "40px",
-        backgroundColor: "#0f172a",
-        minHeight: "100vh",
+        display: "flex",
+        height: "100vh",
+        backgroundColor: "#020617",
         color: "white",
-        fontFamily: "Arial",
+        fontFamily: "monospace",
       }}
     >
-      <h1 style={{ marginBottom: "20px" }}>FX Prices</h1>
-
-      <table
+      {/* LEFT PANEL */}
+      <div
         style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          backgroundColor: "#1e293b",
-          borderRadius: "10px",
-          overflow: "hidden",
+          width: "45%",
+          borderRight: "1px solid #1e293b",
+          padding: "20px",
         }}
       >
-        <thead style={{ backgroundColor: "#334155" }}>
-          <tr>
-            <th style={thStyle}>Pair</th>
-            <th style={thStyle}>Bid</th>
-            <th style={thStyle}>Mid</th>
-            <th style={thStyle}>Ask</th>
-            <th style={thStyle}>Status</th>
-          </tr>
-        </thead>
+        <h2 style={{ marginBottom: "20px", color: "#38bdf8" }}>FX PRICES</h2>
 
-        <tbody>
-          {pairs.map((pair) => (
-            <tr key={pair}>
-              <td style={tdStyle}>{pair.slice(0, 3) + "/" + pair.slice(3)}</td>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead style={{ color: "#64748b", fontSize: "12px" }}>
+            <tr>
+              <th>PAIR</th>
+              <th>BID</th>
+              <th>MID</th>
+              <th>ASK</th>
+              <th>STATUS</th>
+              <th>UPDATED</th>
+              <th>LAT</th>
+            </tr>
+          </thead>
 
-              <td style={{ ...tdStyle, color: getColor(pair, "bid") }}>
-                {format(prices[pair]?.bid)}
-              </td>
-
-              <td style={{ ...tdStyle, color: getColor(pair, "mid") }}>
-                {format(prices[pair]?.mid)}
-              </td>
-
-              <td style={{ ...tdStyle, color: getColor(pair, "ask") }}>
-                {format(prices[pair]?.ask)}
-              </td>
-
-              <td
+          <tbody>
+            {pairs.map((pair) => (
+              <tr
+                key={pair}
+                onClick={() => setSelectedPair(pair)}
                 style={{
-                  ...tdStyle,
-                  color: prices[pair]?.arbitrage ? "#f97316" : "#22c55e",
-                  fontWeight: "600",
+                  cursor: "pointer",
+                  backgroundColor:
+                    selectedPair === pair ? "#1e293b" : "transparent",
                 }}
               >
-                {prices[pair]?.arbitrage ? "🔥 Arbitrage" : "Normal"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                <td style={{ padding: "10px" }}>
+                  {pair.slice(0, 3) + "/" + pair.slice(3)}
+                </td>
 
-      <h2 style={{ marginTop: "40px" }}>Price Charts</h2>
+                <td
+                  style={{
+                    color: getColor(pair, "bid"),
+                    ...getFlashStyle(pair),
+                  }}
+                >
+                  {format(prices[pair]?.bid)}
+                </td>
 
-      {pairs.map((pair) => (
-        <div key={pair} style={{ marginBottom: "40px" }}>
-          <h3>{pair.slice(0, 3) + "/" + pair.slice(3)}</h3>
+                <td
+                  style={{
+                    color: getColor(pair, "mid"),
+                    ...getFlashStyle(pair),
+                  }}
+                >
+                  {format(prices[pair]?.mid)}
+                </td>
 
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={history[pair] || []}>
-              <XAxis dataKey="time" hide />
-              <YAxis domain={["auto", "auto"]} />
-              <Tooltip />
+                <td
+                  style={{
+                    color: getColor(pair, "ask"),
+                    ...getFlashStyle(pair),
+                  }}
+                >
+                  {format(prices[pair]?.ask)}
+                </td>
 
-              <Line
-                type="monotone"
-                dataKey="mid"
-                stroke={getColor(pair, "mid")}
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+                <td
+                  style={{
+                    color: prices[pair]?.arbitrage ? "#f97316" : "#22c55e",
+                  }}
+                >
+                  {prices[pair]?.arbitrage ? "ARB" : "OK"}
+                </td>
+
+                <td style={{ color: "#94a3b8" }}>
+                  {prices[pair]?.timestamp
+                    ? prices[pair].timestamp.toLocaleTimeString()
+                    : "-"}
+                </td>
+
+                <td style={{ color: "#94a3b8" }}>{getLatency(pair)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* RIGHT PANEL */}
+      <div style={{ width: "55%", padding: "20px" }}>
+        <h2 style={{ marginBottom: "10px", color: "#38bdf8" }}>
+          {selectedPair.slice(0, 3) + "/" + selectedPair.slice(3)} CHART
+        </h2>
+
+        <div style={{ marginBottom: "10px", color: "#94a3b8" }}>
+          Last update:{" "}
+          {prices[selectedPair]?.timestamp
+            ? prices[selectedPair].timestamp.toLocaleTimeString()
+            : "-"}
         </div>
-      ))}
+
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={history[selectedPair] || []}>
+            <XAxis dataKey="time" hide />
+            <YAxis domain={["auto", "auto"]} />
+            <Tooltip />
+
+            <Line
+              type="monotone"
+              dataKey="mid"
+              stroke={getColor(selectedPair, "mid")}
+              strokeWidth={2}
+              dot={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
