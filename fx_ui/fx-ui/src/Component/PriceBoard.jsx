@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import {
@@ -16,15 +16,14 @@ function PriceBoard() {
   const [prices, setPrices] = useState(
     Object.fromEntries(pairs.map((p) => [p, {}])),
   );
-
   const [history, setHistory] = useState({});
   const [selectedPair, setSelectedPair] = useState(pairs[0]);
   const [now, setNow] = useState(Date.now());
 
   const prevPrices = useRef({});
-  const flashState = useRef({}); // ✅ NEW (stores flash color)
+  const flashState = useRef({});
 
-  // ⏱ Tick for latency
+  // Update the latency display once per second.
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(Date.now());
@@ -33,7 +32,7 @@ function PriceBoard() {
     return () => clearInterval(interval);
   }, []);
 
-  // 📡 WebSocket
+  // Subscribe to live price updates from the backend stream.
   useEffect(() => {
     const socket = new SockJS("http://localhost:8080/ws-prices");
 
@@ -46,7 +45,7 @@ function PriceBoard() {
             const data = JSON.parse(msg.body);
             const nowTime = new Date();
 
-            // 📈 Chart history
+            // Keep a short rolling history for the chart.
             setHistory((h) => {
               const prevArr = h[pair] || [];
 
@@ -62,7 +61,7 @@ function PriceBoard() {
               };
             });
 
-            // 💥 Detect movement → trigger flash
+            // Flash the row briefly when the mid price moves.
             const prevMid = prevPrices.current[pair]?.mid;
             if (prevMid && data.mid) {
               if (data.mid > prevMid) {
@@ -71,13 +70,13 @@ function PriceBoard() {
                 flashState.current[pair] = "red";
               }
 
-              // remove flash after 300ms
+              // Clear the flash after a short delay.
               setTimeout(() => {
                 flashState.current[pair] = null;
               }, 300);
             }
 
-            // 💰 Update prices
+            // Store the latest price and local receipt time.
             setPrices((prev) => {
               prevPrices.current[pair] = prev[pair];
 
@@ -118,7 +117,7 @@ function PriceBoard() {
     return diff.toFixed(1) + "s";
   };
 
-  // ✅ FLASH STYLE
+  // Highlight updated rows based on the most recent move.
   const getFlashStyle = (pair) => {
     const flash = flashState.current[pair];
 
@@ -141,7 +140,6 @@ function PriceBoard() {
         fontFamily: "monospace",
       }}
     >
-      {/* LEFT PANEL */}
       <div
         style={{
           width: "45%",
@@ -227,7 +225,6 @@ function PriceBoard() {
         </table>
       </div>
 
-      {/* RIGHT PANEL */}
       <div style={{ width: "55%", padding: "20px" }}>
         <h2 style={{ marginBottom: "10px", color: "#38bdf8" }}>
           {selectedPair.slice(0, 3) + "/" + selectedPair.slice(3)} CHART
