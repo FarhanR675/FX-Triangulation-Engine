@@ -17,7 +17,7 @@ class SpreadCalculatorTest {
         double spread = 0.0002;
 
         //Act
-        Price price = spreadCalculator.applySpread(mid, spread);
+        Price price = spreadCalculator.applySpread(mid, spread, false);
 
         //Assert
         assertEquals(0, new BigDecimal("1.1000").compareTo(price.getMid()));
