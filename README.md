@@ -1,6 +1,6 @@
 # FX Triangulation Engine
 
-A full-stack FX pricing and visualization project that streams live currency quotes, derives synthetic cross rates through triangulation, and applies client spreads with basic arbitrage protection.
+FX Triangulation Engine is a real-time backend system that simulates an FX pricing engine with streaming market data, synthetic cross-rate generation, and arbitrage-aware pricing logic.
 
 ## GitHub Description
 
@@ -28,6 +28,12 @@ The backend is built in Java with Spring Boot, and the frontend is built in Reac
 - Real-time publishing over STOMP/WebSocket
 - Interactive frontend dashboard with latency, latest update time, and chart history
 - Smooth price movement overlay for a more natural demo and visualization experience
+
+## Design Goals
+- Low-latency quote updates
+- Separation of pricing and transport layers
+- Stateless REST + stateful streaming via WebSockets
+- Extensible pricing logic for additional FX pairs
 
 ## Supported Pairs
 
